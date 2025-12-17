@@ -8,18 +8,33 @@ const spotifyApi = new SpotifyWebApi({
 
 async function startMusic() {
   try {
+    // 1. ขอ Access Token ใหม่
     const data = await spotifyApi.refreshAccessToken();
     spotifyApi.setAccessToken(data.body['access_token']);
 
-    // เปิดโหมดสุ่มเพลง (Shuffle)
-    await spotifyApi.setShuffle(true);
-    // สั่งให้เล่นเพลงต่อ (Resume/Play)
-    await spotifyApi.play();
+    // 2. ดึงรายชื่ออุปกรณ์ที่ผูกกับบัญชีนี้
+    const devices = await spotifyApi.getMyDevices();
+    const deviceList = devices.body.devices;
+
+    if (deviceList.length === 0) {
+      console.log('❌ ไม่พบอุปกรณ์ที่ออนไลน์อยู่ กรุณาเปิดแอป Spotify ใน iPad หรือมือถือทิ้งไว้');
+      return;
+    }
+
+    // 3. เลือกอุปกรณ์ตัวแรกที่เจอ (หรือตัวที่กำลัง Active อยู่)
+    const activeDevice = deviceList.find(d => d.is_active) || deviceList[0];
+    console.log(`📱 กำลังเชื่อมต่อไปยังอุปกรณ์: ${activeDevice.name}`);
+
+    // 4. สั่งให้เล่นเพลงแบบ Shuffle
+    await spotifyApi.setShuffle(true, { device_id: activeDevice.id });
+    await spotifyApi.play({ device_id: activeDevice.id });
     
-    console.log('✅ Spotify is now playing randomly!');
+    console.log('✅ สั่งเล่นเพลงสำเร็จ! เพลงกำลังรันอยู่บน: ' + activeDevice.name);
   } catch (err) {
-    console.error('❌ Error:', err.message);
-    console.log('Tip: ตรวจสอบว่าคุณเปิดแอป Spotify ทิ้งไว้ในอุปกรณ์ใดอุปกรณ์หนึ่งอยู่หรือเปล่า');
+    console.error('❌ เกิดข้อผิดพลาด:', err.message);
+    if (err.message.includes('PREMIUM_REQUIRED')) {
+      console.log('แจ้งเตือน: บัญชีของคุณไม่ใช่ Premium จึงสั่งงานผ่าน API ไม่ได้');
+    }
   }
 }
 

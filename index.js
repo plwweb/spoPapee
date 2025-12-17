@@ -6,22 +6,21 @@ const spotifyApi = new SpotifyWebApi({
   refreshToken: process.env.SPOTIFY_REFRESH_TOKEN
 });
 
-async function playRandom() {
+async function startMusic() {
   try {
-    // ขอ Access Token ใหม่จาก Refresh Token
     const data = await spotifyApi.refreshAccessToken();
     spotifyApi.setAccessToken(data.body['access_token']);
 
-    // สั่งเปิดโหมด Shuffle
+    // เปิดโหมดสุ่มเพลง (Shuffle)
     await spotifyApi.setShuffle(true);
-    
-    // สั่งเริ่มเล่นเพลง (ถ้ามี Device เปิดทิ้งไว้)
+    // สั่งให้เล่นเพลงต่อ (Resume/Play)
     await spotifyApi.play();
     
-    console.log('Spotify is now playing in shuffle mode!');
+    console.log('✅ Spotify is now playing randomly!');
   } catch (err) {
-    console.error('Error!', err);
+    console.error('❌ Error:', err.message);
+    console.log('Tip: ตรวจสอบว่าคุณเปิดแอป Spotify ทิ้งไว้ในอุปกรณ์ใดอุปกรณ์หนึ่งอยู่หรือเปล่า');
   }
 }
 
-playRandom();
+startMusic();

@@ -1,0 +1,20 @@
+name: Spotify 24/7 Keep Alive
+on:
+  schedule:
+    - cron: '0 * * * *' # รันทุกชั่วโมง
+  workflow_dispatch:
+
+jobs:
+  spotify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm install spotify-web-api-node
+      - run: node index.js
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
